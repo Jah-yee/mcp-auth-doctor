@@ -8,7 +8,7 @@ Check ids (in order of execution):
   prm-fetch                 Protected Resource Metadata is reachable (RFC 9728)
   prm-resource              PRM `resource` equals the MCP URL (trailing slash flagged)
   prm-authorization-servers PRM lists at least one authorization server
-  prm-scopes               challenge scope is covered by scopes_supported (warn if not)
+  prm-scopes                challenge scope is covered by scopes_supported (warn if not)
   as-metadata               AS metadata found (RFC 8414, then OpenID Connect Discovery)
   as-issuer                 metadata `issuer` equals the issuer used for discovery
   as-endpoints              authorization_endpoint and token_endpoint present
@@ -436,8 +436,8 @@ class _Diagnosis:
                 self.add(
                     "prm-scopes",
                     WARN,
-                    f"challenge requests {sorted(missing)!r} which is not in scopes_supported; "
-                    "a server that lists only what it issues is better aligned with clients",
+                    f"challenge scope {sorted(missing)!r} not in scopes_supported; "
+                    "spec allows this but usually means two components drifted",
                     challenge_scope=self.challenge_scope,
                     scopes_supported=scopes_supported,
                     missing_scopes=sorted(missing),

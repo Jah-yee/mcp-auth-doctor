@@ -25,7 +25,7 @@ ALL_IDS = [
 
 
 def test_correct_server_passes_everything(router):
-    mount(router)
+    mount(router, prm_extra={"scopes_supported": ["mcp:read"]})
     report = diagnose(MCP)
     assert [c.id for c in report.checks] == ALL_IDS
     assert report.exit_code == 0 and report.verdict == "pass"
@@ -388,3 +388,28 @@ def test_unauthenticated_request_is_a_minimal_initialize(router):
 
     body = body_json(request)
     assert body["method"] == "initialize" and body["params"]["capabilities"] == {}
+
+def test_prm_scopes_skips_when_no_scopes_supported(router):
+    """prm-scopes is SKIP when PRM has no scopes_supported."""
+    mount(router, prm_extra={})
+    check = by_id(diagnose(MCP), "prm-scopes")
+    assert check.status == SKIP
+    assert "no scopes_supported" in check.reason
+
+
+def test_prm_scopes_warns_when_scope_not_covered(router):
+    """prm-scopes is WARN when challenge scope is not in scopes_supported."""
+    mount(router, prm_extra={"scopes_supported": ["mcp:write"]})
+    check = by_id(diagnose(MCP), "prm-scopes")
+    assert check.status == WARN
+    assert check.evidence["missing_scopes"] == ["mcp:read"]
+    # reason should name the missing scopes
+    assert "mcp:read" in check.reason
+
+
+def test_prm_scopes_passes_when_scope_is_covered(router):
+    """prm-scopes is PASS when challenge scope is in scopes_supported."""
+    mount(router, prm_extra={"scopes_supported": ["mcp:read"]})
+    check = by_id(diagnose(MCP), "prm-scopes")
+    assert check.status == PASS
+    assert "mcp:read" in check.evidence["scopes_supported"]

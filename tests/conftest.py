@@ -85,7 +85,7 @@ def mount(
 
     router.post(mcp_url).mock(side_effect=mcp)
 
-    prm: dict[str, Any] = {"scopes_supported": ["mcp:read"]}
+    prm: dict[str, Any] = {}
     if resource is not None:
         prm["resource"] = resource
     if issuers:
