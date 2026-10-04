@@ -48,7 +48,7 @@ def test_json_document_shape(router):
     assert doc["url"] == MCP
     assert all(set(c) == {"id", "status", "reason", "evidence"} for c in doc["checks"])
     assert doc["summary"]["verdict"] == "pass" and doc["summary"]["exit_code"] == 0
-    assert doc["summary"]["pass"] == 13 and doc["summary"]["skip"] == 3
+    assert doc["summary"]["pass"] == 12 and doc["summary"]["skip"] == 4
     assert doc["summary"]["spec"] == "2026-07-28"
 
 
@@ -388,6 +388,7 @@ def test_unauthenticated_request_is_a_minimal_initialize(router):
 
     body = body_json(request)
     assert body["method"] == "initialize" and body["params"]["capabilities"] == {}
+
 
 def test_prm_scopes_skips_when_no_scopes_supported(router):
     """prm-scopes is SKIP when PRM has no scopes_supported."""
