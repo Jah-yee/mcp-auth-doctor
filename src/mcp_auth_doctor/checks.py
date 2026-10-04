@@ -8,6 +8,7 @@ Check ids (in order of execution):
   prm-fetch                 Protected Resource Metadata is reachable (RFC 9728)
   prm-resource              PRM `resource` equals the MCP URL (trailing slash flagged)
   prm-authorization-servers PRM lists at least one authorization server
+  prm-scopes               challenge scope is covered by scopes_supported (warn if not)
   as-metadata               AS metadata found (RFC 8414, then OpenID Connect Discovery)
   as-issuer                 metadata `issuer` equals the issuer used for discovery
   as-endpoints              authorization_endpoint and token_endpoint present
@@ -209,6 +210,7 @@ class _Diagnosis:
             "prm-fetch",
             "prm-resource",
             "prm-authorization-servers",
+            "prm-scopes",
         ):
             if check_id not in done:
                 self.add(check_id, SKIP, reason)
@@ -410,6 +412,44 @@ class _Diagnosis:
                 authorization_servers=issuers,
                 scopes_supported=prm.get("scopes_supported"),
             )
+
+        # prm-scopes: warn when challenge scope is not in scopes_supported
+        scopes_supported = prm.get("scopes_supported")
+        if self.challenge_scope is None:
+            self.add(
+                "prm-scopes",
+                SKIP,
+                "no scope in the WWW-Authenticate challenge",
+            )
+        elif not scopes_supported:
+            self.add(
+                "prm-scopes",
+                SKIP,
+                "PRM has no scopes_supported",
+                challenge_scope=self.challenge_scope,
+            )
+        else:
+            challenge_scopes = set(self.challenge_scope.split())
+            supported_set = set(scopes_supported) if isinstance(scopes_supported, list) else set()
+            missing = challenge_scopes - supported_set
+            if missing:
+                self.add(
+                    "prm-scopes",
+                    WARN,
+                    f"challenge requests {sorted(missing)!r} which is not in scopes_supported; "
+                    "a server that lists only what it issues is better aligned with clients",
+                    challenge_scope=self.challenge_scope,
+                    scopes_supported=scopes_supported,
+                    missing_scopes=sorted(missing),
+                )
+            else:
+                self.add(
+                    "prm-scopes",
+                    PASS,
+                    "challenge scope is covered by scopes_supported",
+                    challenge_scope=self.challenge_scope,
+                    scopes_supported=scopes_supported,
+                )
         return issuers
 
     # ---- step 4: authorization server metadata --------------------------------------

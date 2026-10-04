@@ -10,6 +10,7 @@ ALL_IDS = [
     "prm-fetch",
     "prm-resource",
     "prm-authorization-servers",
+    "prm-scopes",
     "as-metadata",
     "as-issuer",
     "as-endpoints",
@@ -47,7 +48,7 @@ def test_json_document_shape(router):
     assert doc["url"] == MCP
     assert all(set(c) == {"id", "status", "reason", "evidence"} for c in doc["checks"])
     assert doc["summary"]["verdict"] == "pass" and doc["summary"]["exit_code"] == 0
-    assert doc["summary"]["pass"] == 12 and doc["summary"]["skip"] == 3
+    assert doc["summary"]["pass"] == 13 and doc["summary"]["skip"] == 3
     assert doc["summary"]["spec"] == "2026-07-28"
 
 
